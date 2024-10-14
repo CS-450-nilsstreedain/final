@@ -62,10 +62,6 @@ const int ESCAPE = 0x1b;
 
 const int INIT_WINDOW_SIZE = 600;
 
-// size of the 3d box to be drawn:
-
-const float BOXSIZE = 2.f;
-
 // multiplication factors for input interaction:
 //  (these are known from previous experience)
 
@@ -404,7 +400,7 @@ Display( )
 
 	// set the eye position, look-at position, and up-vector:
 
-	gluLookAt( 0.f, 0.f, 3.f,     0.f, 0.f, 0.f,     0.f, 1.f, 0.f );
+	gluLookAt( 0.f, 5.f, 0.f,     0.f, 0.f, 0.f,     0.f, 0.f, -1.f );
 
 	// rotate the scene:
 
@@ -809,7 +805,6 @@ InitGraphics( )
 
 }
 
-
 // initialize the display lists that will not change:
 // (a display list is a way to store opengl commands in
 //  memory so that they can be played back efficiently at a later time
@@ -820,68 +815,53 @@ InitLists( )
 {
 	if (DebugOn != 0)
 		fprintf(stderr, "Starting InitLists.\n");
-
-	float dx = BOXSIZE / 2.f;
-	float dy = BOXSIZE / 2.f;
-	float dz = BOXSIZE / 2.f;
+    
 	glutSetWindow( MainWindow );
 
 	// create the object:
 
 	BoxList = glGenLists( 1 );
 	glNewList( BoxList, GL_COMPILE );
+    
+        glBegin(GL_TRIANGLES);
+            // Number of tetrahedrons per edge in the stack
+            int levels = 4;
 
-		glBegin( GL_QUADS );
+            for (int i = levels; i > 0; i--) {
+                for (int j = levels; j >= i; j--) {
+                    for (int k = levels; k >= j; k--) {
+                        float x = (j - i * 0.5) - (k * 0.5);
+                        float y = i - 1 - (levels * 0.35);
+                        float z = (k - i * 0.5) + (k * 0.2) - (levels * 0.7);
 
-			glColor3f( 1., 0., 0. );
+                        // Base triangle
+                        glColor3f(i * 0.2, j * 0.4, k * 0.6);
+                            glVertex3f(x + 0, y + 1, z + 0);
+                            glVertex3f(x - 0.5, y + 0, z + 0.5);
+                            glVertex3f(x + 0.5, y + 0, z + 0.5);
 
-				glNormal3f( 1., 0., 0. );
-					glVertex3f(  dx, -dy,  dz );
-					glVertex3f(  dx, -dy, -dz );
-					glVertex3f(  dx,  dy, -dz );
-					glVertex3f(  dx,  dy,  dz );
+                        glColor3f(i * 0.6, j * 0.4, k * 0.2);
+                            glVertex3f(x - 0.5, y + 0, z + 0.5);
+                            glVertex3f(x + 0.5, y + 0, z + 0.5);
+                            glVertex3f(x + 0, y + 0, z - 0.7);
 
-				glNormal3f(-1., 0., 0.);
-					glVertex3f( -dx, -dy,  dz);
-					glVertex3f( -dx,  dy,  dz );
-					glVertex3f( -dx,  dy, -dz );
-					glVertex3f( -dx, -dy, -dz );
+                        glColor3f(i * 0.6, j * 0.2, k * 0.4);
+                            glVertex3f(x + 0.5, y + 0, z + 0.5);
+                            glVertex3f(x + 0, y + 0, z - 0.7);
+                            glVertex3f(x + 0, y + 1, z + 0);
 
-			glColor3f( 0., 1., 0. );
-
-				glNormal3f(0., 1., 0.);
-					glVertex3f( -dx,  dy,  dz );
-					glVertex3f(  dx,  dy,  dz );
-					glVertex3f(  dx,  dy, -dz );
-					glVertex3f( -dx,  dy, -dz );
-
-				glNormal3f(0., -1., 0.);
-					glVertex3f( -dx, -dy,  dz);
-					glVertex3f( -dx, -dy, -dz );
-					glVertex3f(  dx, -dy, -dz );
-					glVertex3f(  dx, -dy,  dz );
-
-			glColor3f(0., 0., 1.);
-
-				glNormal3f(0., 0., 1.);
-					glVertex3f(-dx, -dy, dz);
-					glVertex3f( dx, -dy, dz);
-					glVertex3f( dx,  dy, dz);
-					glVertex3f(-dx,  dy, dz);
-
-				glNormal3f(0., 0., -1.);
-					glVertex3f(-dx, -dy, -dz);
-					glVertex3f(-dx,  dy, -dz);
-					glVertex3f( dx,  dy, -dz);
-					glVertex3f( dx, -dy, -dz);
-
+                        glColor3f(i * 0.4, j * 0.2, k * 0.6);
+                            glVertex3f(x + 0, y + 0, z - 0.7);
+                            glVertex3f(x + 0, y + 1, z + 0);
+                            glVertex3f(x - 0.5, y + 0, z + 0.5);
+                    }
+                }
+            }
 		glEnd( );
 
 	glEndList( );
 
-
 	// create the axes:
-
 	AxesList = glGenLists( 1 );
 	glNewList( AxesList, GL_COMPILE );
 		glLineWidth( AXES_WIDTH );
@@ -1030,15 +1010,15 @@ void
 Reset( )
 {
 	ActiveButton = 0;
-	AxesOn = 1;
+	AxesOn = 0;
 	DebugOn = 0;
 	DepthBufferOn = 1;
 	DepthFightingOn = 0;
 	DepthCueOn = 0;
-	Scale  = 1.0;
+	Scale  = 0.75;
 	ShadowsOn = 0;
 	NowColor = YELLOW;
-	NowProjection = PERSP;
+    NowProjection = ORTHO;
 	Xrot = Yrot = 0.;
 }
 
