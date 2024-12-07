@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <vector>
+#include <fstream>
+#include <iostream>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -114,6 +117,8 @@ enum Projections
 enum ButtonVals
 {
     RESET,
+    SAVE,
+    LOAD,
     QUIT
 };
 
@@ -210,6 +215,13 @@ GLuint GridDL;
 float cursX;
 float cursY;
 float cursZ;
+
+// Define a simple struct to hold your box position
+struct BoxPosition {
+    float x, y, z;
+};
+
+std::vector<BoxPosition> boxPositions;
 
 bool    PointLight;
 float   LRed;
@@ -371,6 +383,96 @@ Animate( )
 
 
 // draw the complete scene:
+void DrawBox(float x, float y, float z) {
+    // Save current transformation
+    glPushMatrix();
+    
+    // Move to box position
+    glTranslatef(x, y, z);
+
+    // Draw a cube or your wireframe box here
+    glCallList(BoxList);
+
+    // Restore previous transformation
+    glPopMatrix();
+}
+
+// Check if a box at (x, y, z) already exists
+bool BoxExists(float x, float y, float z) {
+    for (size_t i = 0; i < boxPositions.size(); i++) {
+        if (boxPositions[i].x == x &&
+            boxPositions[i].y == y &&
+            boxPositions[i].z == z) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Remove a box at (x, y, z) if it exists
+bool RemoveBox(float x, float y, float z) {
+    for (size_t i = 0; i < boxPositions.size(); i++) {
+        if (boxPositions[i].x == x &&
+            boxPositions[i].y == y &&
+            boxPositions[i].z == z) {
+            // Erase this element
+            boxPositions.erase(boxPositions.begin() + i);
+            return true;
+        }
+    }
+    return false; // No box found
+}
+
+// Save boxes to a file
+bool SaveBoxesToFile(const char* filename) {
+    std::ofstream outfile(filename);
+    if (!outfile) {
+        std::cout << "Error opening file for writing: " << filename << "\n";
+        return false;
+    }
+
+    // First write number of boxes
+    outfile << boxPositions.size() << "\n";
+    // Then each box position
+    for (size_t i = 0; i < boxPositions.size(); i++) {
+        outfile << boxPositions[i].x << " "
+                << boxPositions[i].y << " "
+                << boxPositions[i].z << "\n";
+    }
+    outfile.close();
+    return true;
+}
+
+// Load boxes from a file
+bool LoadBoxesFromFile(const char* filename) {
+    std::ifstream infile(filename);
+    if (!infile) {
+        std::cout << "Error opening file for reading: " << filename << "\n";
+        return false;
+    }
+
+    size_t count = 0;
+    infile >> count;
+    if (!infile) {
+        std::cout << "Error reading box count\n";
+        return false;
+    }
+
+    // Clear current boxes and resize
+    boxPositions.clear();
+    for (size_t i = 0; i < count; i++) {
+        BoxPosition pos;
+        infile >> pos.x >> pos.y >> pos.z;
+        if (!infile) {
+            std::cout << "Error reading box position at index " << i << "\n";
+            return false;
+        }
+        boxPositions.push_back(pos);
+    }
+
+    infile.close();
+    return true;
+}
 
 void
 Display( )
@@ -485,7 +587,9 @@ Display( )
     glTranslatef(-cursX, -cursY, -cursZ);
     glEnable(GL_LIGHTING);
     
-    glCallList( BoxList );
+    for (std::size_t i = 0; i < boxPositions.size(); i++) {
+        DrawBox(boxPositions[i].x, boxPositions[i].y, boxPositions[i].z);
+    }
 
 #ifdef DEMO_Z_FIGHTING
     if( DepthFightingOn != 0 )
@@ -607,6 +711,20 @@ DoMainMenu( int id )
     {
         case RESET:
             Reset( );
+            break;
+            
+        case SAVE:
+            if (!SaveBoxesToFile("boxes.txt"))
+                fprintf(stderr, "Failed to save boxes.\n");
+            else
+                fprintf(stdout, "Boxes saved to boxes.txt\n");
+            break;
+            
+        case LOAD:
+            if (!LoadBoxesFromFile("boxes.txt"))
+                fprintf(stderr, "Failed to load boxes.\n");
+            else
+                fprintf(stdout, "Loaded boxes.\n");
             break;
 
         case QUIT:
@@ -743,6 +861,8 @@ InitMenus( )
     glutAddSubMenu(   "Projection",    projmenu );
     glutAddMenuEntry( "Reset",         RESET );
     glutAddSubMenu(   "Debug",         debugmenu);
+    glutAddMenuEntry( "Save",          SAVE);
+    glutAddMenuEntry( "Load",          LOAD );
     glutAddMenuEntry( "Quit",          QUIT );
 
 // attach the pop-up menu to the right mouse button:
@@ -1029,6 +1149,24 @@ Keyboard( unsigned char c, int x, int y )
         case 'E':
             cursY -= cursY > 0 ? BOXSIZE : 0;
             break;
+            
+        case 'b':
+        case 'B':
+            if (!BoxExists(cursX, cursY, cursZ)) {
+                // Only add if a box isn't already there
+                BoxPosition pos;
+                pos.x = cursX;
+                pos.y = cursY;
+                pos.z = cursZ;
+                boxPositions.push_back(pos);
+            }
+            break;
+            
+        case 'r':
+        case 'R':
+            // Remove a box at the current position if it exists
+            RemoveBox(cursX, cursY, cursZ);
+            break;
 
         case 'c':
         case 'C':
@@ -1166,6 +1304,7 @@ Reset( )
     cursX = 0;
     cursY = 0;
     cursZ = 0;
+    boxPositions.clear();
 }
 
 
