@@ -1,81 +1,64 @@
-# Project #1
-## Introduction
-This project requires you to draw something fun and cool in 3D. It must be your own creation.
+# Final Project
+## Requirements:
+The goal of this assignment is to give you a chance to apply all that you have learned to a project of your own choosing.
 
-Just as an inspiration, [here is what the CS 450/550 Class of 2022 did with this assignment](https://web.engr.oregonstate.edu/~mjb/cs550/Projects/P1Collage2022.pdf), but I know you can do better.
+1. It must involve some serious 3D computer graphics.
+2. It must be worth 100 points.
+3. It must be do-able in 1 week.
+4. It can involve textures, but doesn't have to.
+5. It can involve lighting, but doesn't have to.
+6. It can involve shaders, but doesn't have to.
+7. It can involve shadows, but doesn't have to.
+8. It can be based on other work that you have seen, but it must be your own implementation.
+9. It must be adequately explained in your write-up.
 
 ## Learning Objective:
-When you are done with this assignment, you will understand how to generate and manipulate 3D graphics objects using OpenGL. At this point, you will realize that you can basically draw anything just by repeatedly applying what you did here.
+When you are done with this assignment, you will have had the chance to apply your newly-discovered graphics knowledge to an application that has significance to you. Sometimes, this project is used to launch someone into their research. Sometimes, this project is used to impress recruiters.
 
-## Instructions
-1. You can use pre-canned 3D objects, such as the ones that GLUT provides, or the OSU functions that we provide, or OBJ files, but in addition to your own, not instead of. You must create your own geometry.
-2. You can explicitly list your own 3D coordinates, or you can use equations and define the 3D shapes procedurally.
-3. You must have at least 100 x-y-z coordinates. These can be divided up among multiple of your objects.
-4. The scene must have 3D thickness, nothing that is completely planar.
-5. You must use at least 5 different colors.
-6. The 3D rotation and scaling from the sample program must still be working.
+## Your Proposal
+- Before your project becomes "official", I need to approve a proposal from you. This needs to be a 1-page PDF suvbmitted to Canvas by the date and time listed above. What you propose must be worth 100 points. Compare what you are proposing versus one of the 100-point projects, for example.
+- Give me enough detail that I can figure out if it is worth 100 points and if it is doable in a week. I will get back to you by the end of the following week to tell you if your proposal has been accepted.
+- On the proposal front page, be sure to put "Final Project Proposal", your name, and your email address.
 
-## Getting Started
-Go to the Class Resources Page and scroll down to **Downloadable Files**. Then download one of the SampleWindows.zip, SampleLinux.tar, or SampleMac.tar files (by right-clicking on them). This will produce a folder full of all the other files you need. You do not need to go hunt the internet for any other files. Use the ones that have been given to you.
+## AI!
+I played with ChatGPT some over the summer. It was much better at writing non-graphics code and 2D graphics code than it was at writing 3D graphics code. (It was pretty good at generating OpenGL code to draw a 2D circle.) But, I expect that you are better at generating prompts than I am. So one of your Final Project options is to use ChatGPT (or other LLM programs like it) to generate and/or animate a 3D scene. It has to be an interesting-enough scene to earn the full points. (A sphere won't cut it.)
 
-Start by getting the sample program to work. If you are on Windows, double-click on the .sln file. If you are on Linux or Mac, type **make**
+I suspect that one can use ChatGPT to generate parts of a simple 3D scene and then surround it with your more-complex supporting code. But I am also expecting that a few people will surprise the hell out of me with what they can do more automatically. If you do this, you need to document what LLM you used, what prompts you used, and what code it generated with them.
 
-Then start modifying the function InitLists( ) to draw something of your own design.
+## Possible Helps
+- If you want to bring in other 3D objects to work with (and there are a lot of them on the Internet), look for something in a .obj format. If you want to load a .obj file, incorporate the file loadobjfile.cpp into your own code. (See the Announcements.) Warning! Not all obj files have normal vectors and texture coordinates. Take a look at the obj file (it is ascii-editable). If you see lines of text beginning with vn, it has normals. If you see lines beginning with vt, it has texture coordinates.
+- If you liked the Bézier curves from the Geometric Modeling notes, there is a Bézier surface form as well. It has 16 control points instead of 4 and produces a smooth, slightly-bumpy, surface instead of a smooth, slightly-bumpy, curve. I'd be happy to show this to you if you would find it useful.
 
-No, using a GLUT object or an OSU object or an OBJ file will not count.
+## The Turn-In Process:
+Use Canvas to turn in:
+1. All source code files (.cpp, .vert, .frag)
+2. (Do not turn in .obj or .bmp files. If I want them, I'll ask you for them.)
+3. Your PDF report containing:
 
-## Something Fun -- Using Random Numbers
-Sometimes it is fun to use random numbers when drawing your scene. They can be used to modify several graphical things such as positions and colors. The functions below are included in your Sample code. the **Ranf** function will return a number between the low and high values. For example, to pick a random color, call:
-glColor3f( Ranf(0.,1.) , Ranf(0.,1.) , Ranf(0.,1.) );
+- Do not zip or tar any files together!
+- To see how to turn these files in to Canvas, go to our Project Notes noteset, and go the the slide labeled How to Turn In a Project on Canvas.
+- Be sure that your video's permissions are set to unlisted.. The best place to set this is on the OSU Media Server.
+- A good way to test your video's permissions is to ask a friend to try to open the same video link that you are giving us.
+- The video doesn't have to be made with Kaltura. Any similar tool will do.
 
-Every time you run your program, the random number sequence starts from the same seed. If you want your program to behave differently every time you run it, call the function **TimeOfDaySeed()** first thing in your main.
+Your PDF submission is due at the date and time listed above.
 
-```
-float
-Ranf( float low, float high )
-{
-        float r = (float) rand();               // 0 - RAND_MAX
-        float t = r  /  (float) RAND_MAX;       // 0. - 1.
+Note: This is a hard deadline. Bonus Days cannot be used on this project.
 
-        return   low  +  t * ( high - low );
-}
+## Your PDF Report
+In addition to doing the project, you also need to write a final report about it:
+- Turn the PDF of your report into Canvas with your other files
+- You report needs to include:
+    1. The text from your proposal
+    2. What you actually did for your project
+    3. How your project differs from what you proposed, and why
+    4.(optional) Any impressive cleverness you want us to know about
+    5. What you learned from doing this project (i.e., what you know now that you didn't know when you started)
+    6. Some images that are especially representative of what you did
+    7. A link to the video showing off your project. Be sure your video is set to unlisted.
 
-// call this if you want to force your program to use
-// a different random number sequence every time you run it:
-void
-TimeOfDaySeed( )
-{
-	struct tm y2k = { 0 };
-	y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
-	y2k.tm_year = 100; y2k.tm_mon = 0; y2k.tm_mday = 1;
+## Some Comments on Popular Project Ideas
+I have noticed some patterns in popular project ideas. Click here to see those comments.
 
-	time_t  timer;
-	time( &timer );
-	double seconds = difftime( timer, mktime(&y2k) );
-	unsigned int seed = (unsigned int)( 1000.*seconds );    // milliseconds
-	srand( seed );
-}
-```
-
-## Turn-in:
-Use Canvas to turn in your:
-1. Your .cpp file
-2. A short PDF report containing:
-  - Your name
-  - Your email address
-  - Project number and title
-  - A description of what you did to get the display you got
-  - A cool-looking screen shot from your program
-  - The link to the [Kaltura video](http://cs.oregonstate.edu/~mjb/cs557/Handouts/kaltura.1pp.pdf) demonstrating that your project does what the requirements ask for. If you can, we'd appreciate it if you'd narrate your video so that you can tell us what it is doing.
-3. To see how to turn these files in to Canvas, go to our Project Notes noteset, and go the the slide labeled How to Turn In a Project on Canvas.
-4. Be sure that your video's permissions are set to unlisted.. The best place to set this is on the OSU Media Server.
-5. A good way to test your video's permissions is to ask a friend to try to open the same video link that you are giving us.
-6. The video doesn't have to be made with Kaltura. Any similar tool will do.
-
-## Grading:
-Feature | Points
----|---
-At least 100 vertices | 20
-At least 5 colors | 20
-3D rotation and scaling | 10
-**Potential Total** | **50**
+## Grading
+Getting the project proposal in on time and in the right format is worth the first 10 points!
