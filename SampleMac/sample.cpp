@@ -218,15 +218,13 @@ float cursZ;
 
 // Define a simple struct to hold your box position
 struct BoxPosition {
-    float x, y, z;
+    float x;
+    float y;
+    float z;
+    int color;
 };
 
 std::vector<BoxPosition> boxPositions;
-
-bool    PointLight;
-float   LRed;
-float   LGreen;
-float   LBlue;
 
 // function prototypes:
 
@@ -383,7 +381,9 @@ Animate( )
 
 
 // draw the complete scene:
-void DrawBox(float x, float y, float z) {
+void DrawBox(float x, float y, float z, int color) {
+    SetMaterial(Colors[color][0], Colors[color][1], Colors[color][2], 30.f);
+    
     // Save current transformation
     glPushMatrix();
     
@@ -423,7 +423,6 @@ bool RemoveBox(float x, float y, float z) {
     return false; // No box found
 }
 
-// Save boxes to a file
 bool SaveBoxesToFile(const char* filename) {
     std::ofstream outfile(filename);
     if (!outfile) {
@@ -433,17 +432,19 @@ bool SaveBoxesToFile(const char* filename) {
 
     // First write number of boxes
     outfile << boxPositions.size() << "\n";
-    // Then each box position
+
+    // Then each box position and its color index
     for (size_t i = 0; i < boxPositions.size(); i++) {
         outfile << boxPositions[i].x << " "
                 << boxPositions[i].y << " "
-                << boxPositions[i].z << "\n";
+                << boxPositions[i].z << " "
+                << boxPositions[i].color << "\n";
     }
+
     outfile.close();
     return true;
 }
 
-// Load boxes from a file
 bool LoadBoxesFromFile(const char* filename) {
     std::ifstream infile(filename);
     if (!infile) {
@@ -462,7 +463,7 @@ bool LoadBoxesFromFile(const char* filename) {
     boxPositions.clear();
     for (size_t i = 0; i < count; i++) {
         BoxPosition pos;
-        infile >> pos.x >> pos.y >> pos.z;
+        infile >> pos.x >> pos.y >> pos.z >> pos.color;
         if (!infile) {
             std::cout << "Error reading box position at index " << i << "\n";
             return false;
@@ -473,6 +474,7 @@ bool LoadBoxesFromFile(const char* filename) {
     infile.close();
     return true;
 }
+
 
 void
 Display( )
@@ -515,7 +517,7 @@ Display( )
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity( );
     if( NowProjection == ORTHO )
-        glOrtho( -2.f, 2.f,     -2.f, 2.f,     0.1f, 1000.f );
+        glOrtho( -4.f, 4.f,     -4.f, 4.f,     0.1f, 1000.f );
     else
         gluPerspective( 70.f, 1.f,    0.1f, 1000.f );
 
@@ -526,7 +528,7 @@ Display( )
 
     // set the eye position, look-at position, and up-vector:
 
-    gluLookAt( 0.f, 4.f, 6.f,     0.f, 2.f, 0.f,     0.f, 1.f, 0.f );
+    gluLookAt( -3.f, 8.f, 6.f,     0.f, 2.f, 0.f,     0.f, 1.f, 0.f );
 
     // rotate the scene:
 
@@ -557,14 +559,13 @@ Display( )
     
     glEnable(GL_LIGHTING);
     
-    SetPointLight(GL_LIGHT0, 5, 10, 5, LRed, LGreen, LBlue);
+    SetPointLight(GL_LIGHT0, 5, 10, 10, 1, 1, 1);
     
-    glDisable(GL_LIGHTING);
-
     // possibly draw the axes:
 
     if( AxesOn != 0 )
     {
+        glDisable(GL_LIGHTING);
         glColor3f(1, 1, 0 );
         glCallList( AxesList );
         glEnable(GL_LIGHTING);
@@ -580,7 +581,6 @@ Display( )
     glCallList( GridDL );
     glTranslatef(0, 0.02f, 0);
     
-    
     glDisable(GL_LIGHTING);
     glTranslatef(cursX, cursY, cursZ);
     glCallList( WireBoxList );
@@ -588,8 +588,9 @@ Display( )
     glEnable(GL_LIGHTING);
     
     for (std::size_t i = 0; i < boxPositions.size(); i++) {
-        DrawBox(boxPositions[i].x, boxPositions[i].y, boxPositions[i].z);
+        DrawBox(boxPositions[i].x, boxPositions[i].y, boxPositions[i].z, boxPositions[i].color);
     }
+    
 
 #ifdef DEMO_Z_FIGHTING
     if( DepthFightingOn != 0 )
@@ -870,8 +871,6 @@ InitMenus( )
     glutAttachMenu( GLUT_RIGHT_BUTTON );
 }
 
-
-
 // initialize the glut and OpenGL libraries:
 //    also setup callback functions
 
@@ -1005,8 +1004,6 @@ InitLists( )
     glNewList( BoxList, GL_COMPILE );
 
         glBegin( GL_QUADS );
-    
-            SetMaterial( 1.0f, 1.0f, 1.0f, 30.f );
 
             // +X face
             glNormal3f(1., 0., 0.);
@@ -1120,6 +1117,28 @@ Keyboard( unsigned char c, int x, int y )
 
     switch( c )
     {
+        case '1': case '2': case '3': case '4': case '5': case '6': {
+            int color = c - '1';
+            // Check if a box already exists at the current position
+            bool boxExists = false;
+            for (size_t i = 0; i < boxPositions.size(); ++i) {
+                if (boxPositions[i].x == cursX && boxPositions[i].y == cursY && boxPositions[i].z == cursZ) {
+                    boxExists = true;
+                    boxPositions[i].color = color;
+                    break;
+                }
+            }
+            // Place a box only if one doesn't already exist at this position
+            if (!boxExists) {
+                BoxPosition pos;
+                pos.x = cursX;
+                pos.y = cursY;
+                pos.z = cursZ;
+                pos.color = color;
+                boxPositions.push_back(pos);
+            }
+            break;
+        }
         case 'w':
         case 'W':
             cursZ -= cursZ > -7 * BOXSIZE ? BOXSIZE : 0;
@@ -1148,18 +1167,6 @@ Keyboard( unsigned char c, int x, int y )
         case 'e':
         case 'E':
             cursY -= cursY > 0 ? BOXSIZE : 0;
-            break;
-            
-        case 'b':
-        case 'B':
-            if (!BoxExists(cursX, cursY, cursZ)) {
-                // Only add if a box isn't already there
-                BoxPosition pos;
-                pos.x = cursX;
-                pos.y = cursY;
-                pos.z = cursZ;
-                boxPositions.push_back(pos);
-            }
             break;
             
         case 'r':
@@ -1287,7 +1294,7 @@ void
 Reset( )
 {
     ActiveButton = 0;
-    AxesOn = 1;
+    AxesOn = 0;
     DebugOn = 0;
     DepthBufferOn = 1;
     DepthFightingOn = 0;
@@ -1295,12 +1302,8 @@ Reset( )
     Scale  = 1.0;
     ShadowsOn = 0;
     NowColor = YELLOW;
-    NowProjection = PERSP;
+    NowProjection = ORTHO;
     Xrot = Yrot = 0.;
-    PointLight = false;
-    LRed = 1;
-    LGreen = 1;
-    LBlue = 1;
     cursX = 0;
     cursY = 0;
     cursZ = 0;
